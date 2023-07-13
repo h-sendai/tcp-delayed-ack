@@ -1,5 +1,29 @@
 # TCP Delayed Ack
 
+## TCP_QUICKACK
+
+TCPにはできるだけackのみのパケットを送らないようにする
+delayed ackの機能がある。一定時間待って、送るデータが
+なければackのみ送る。
+「一定時間」は昔の実装だと200ミリ秒だった。
+現在のLinuxではHZで違うようなかんじだがAlmaLinux 8で
+試してみると40ミリ秒だった。
+
+ただし、デフォルトではTCP_QUICKACKが有効になっていて
+一定時間待つことなしにすぐにackを送るような動作を
+することが多い。
+
+## TCP_QUICKACKの値の取得
+
+[TCP_QUICKACKのデフォルト値を取得するプログラム](quickack-default-value/)
+を書いてみた。ソケットを作ってすぐに``getsockopt()``で
+``TCP_QUICKACK``の値を取得している。
+AlmaLinux 8で試すと``1``(有効化されている)が表示された。
+
+## Delayed Ackの様子をみるプログラム
+
+tcpdumpでdelayed ackの様子を観察するプログラム。
+
 - サーバーは起動して、read()で待つ。
 - クライアントは起動して接続するとwrite()で1バイト書き、
   続けてread()で待つ。
@@ -19,6 +43,85 @@
 1バイト ----------->
         <----------- 1バイト
 ```
+
+## 起動
+
+サーバー
+```
+./server
+```
+
+クライアント
+
+```
+./client [-q 0 or 1] remote-host
+```
+
+クライアント側には``-q``オプションでTCP_QUICKACK
+の値を指定するオプションをつけた。
+``./client -q 0``と指定するとTCP_QUICKACKが無効となる。
+指定しない場合はTCP_QUICKACKはシステムデフォルトの値に
+なっている。AlmaLinux 8では1であった。
+
+```
+Usage: client [options] ip_address
+Connect to server and read data.  Display through put before exit.
+
+options:
+-c CPU_NUM      running cpu num (default: none)
+-p PORT         port number (default: 1234)
+-q VALUE        specify quickack value (default: -1: use default value)
+-n n_data       number of data (each 20 bytes) from server.  (default: 2)
+-h              display this help
+```
+
+(注)
+```
+quickack(0)
+
+for ( ; ; ) {
+    write()
+    read()
+}
+```
+とすると最初のループのwrite(), read()はquickackが0でまわるが
+次からはデフォルト値のquickack = 1でまわる。
+必要なら毎回quickackの値をセットする。(注おわり)
+
+## AlmaLinux 8 client <----> RHEL 9 Server
+
+サーバー:
+```
+./server
+```
+
+クライアント:
+```
+./client -q 0 -n 50 -s 500000 remote-host
+```
+として起動したときのtcpdumpのログを
+[client-on-AlmaLinux.txt](client-on-AlmaLinux.txt)
+においた。
+
+192.168.10.200がサーバー、192.168.10.201がクライアント:
+```
+0.500787 0.458605 IP 192.168.10.201.51786 > 192.168.10.200.1234: Flags [P.], seq 2:3, ack 2, win 229, length 1
+0.500927 0.000140 IP 192.168.10.200.1234 > 192.168.10.201.51786: Flags [P.], seq 2:3, ack 3, win 502, length 1
+0.542176 0.041249 IP 192.168.10.201.51786 > 192.168.10.200.1234: Flags [.], ack 3, win 229, length 0
+```
+0.500927秒に受け取ったデータのackを41.249秒後に送っていることがわかる。
+
+クライアント側で``-q``オプションをつけないで起動したときのtcpdumpのログを
+[client-on-AlmaLinux8-quickack.txt](client-on-AlmaLinux8-quickack.txt)
+においた。
+
+192.168.10.200がサーバー、192.168.10.201がクライアント:
+```
+0.500834 0.500206 IP 192.168.10.201.49816 > 192.168.10.200.1234: Flags [P.], seq 2:3, ack 2, win 229, length 1
+0.500972 0.000138 IP 192.168.10.200.1234 > 192.168.10.201.49816: Flags [P.], seq 2:3, ack 3, win 502, length 1
+0.500994 0.000022 IP 192.168.10.201.49816 > 192.168.10.200.1234: Flags [.], ack 3, win 229, length 0
+```
+0.00972秒に受け取ったデータのackを0.000022秒後に送っていることがわかる。
 
 ## FreeBSD client <----> Linux Server
 
