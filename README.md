@@ -146,6 +146,9 @@ for ( ; ; ) {
     5 delayed acks further delayed because of locked socket
 ```
 
+server, clientを同一マシンで動かし、``lo``を通じて通信させるときにも
+``client -q 0 127.0.0.1``とするとdelayed ackしていることを確認できる。
+
 ## FreeBSD client <----> Linux Server
 
 FreeBSD 13.2でクライアントを
