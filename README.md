@@ -101,7 +101,7 @@ for ( ; ; ) {
 ./client -q 0 -n 50 -s 500000 remote-host
 ```
 として起動したときのtcpdumpのログを
-[client-on-AlmaLinux.txt](client-on-AlmaLinux.txt)
+[client-on-AlmaLinux8.txt](client-on-AlmaLinux8.txt)
 においた。
 
 192.168.10.200がサーバー、192.168.10.201がクライアント:
