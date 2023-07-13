@@ -2,21 +2,35 @@
 
 int tcp_socket(void)
 {
-	return socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        warn("socket(AF_INET, SOCK_STREAM, 0)");
+        return -1;
+    }
+
+    return sockfd;
 }
 
 int udp_socket(void)
 {
-	return socket(AF_INET, SOCK_DGRAM, 0);
+    int sockfd;
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        warn("socket(AF_INET, SOCK_DGRAM, 0)");
+        return -1;
+    }
+
+    return sockfd;
 }
 
 int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
     struct timeval tm_out, orig_tm_out;
     socklen_t len;
 
@@ -26,21 +40,21 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
         return -1;
     }
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
     tm_out.tv_sec  = timeout_sec;
     tm_out.tv_usec = 0;
@@ -64,72 +78,72 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
         return -1;
     }
 
-	return 0;
+    return 0;
 }
 
 /* from kolc */
 int connect_tcp(int sockfd, char *host, int port)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
-	if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("connect");
-		return -1;
-	}
-	//return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-	return 0;
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("connect");
+        return -1;
+    }
+    //return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    return 0;
 }
 
 int connect_udp(int sockfd, char *host, int port)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
-	if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("connect");
-		return -1;
-	}
-	//return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-	return 0;
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("connect");
+        return -1;
+    }
+    //return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    return 0;
 }
 
 int my_bind(int sockfd, char *host, int port)
@@ -187,7 +201,8 @@ int set_so_rcvbuf(int sockfd, int so_rcvbuf)
 #else
     if (ret_so_rcvbuf != so_rcvbuf) {
 #endif
-        warnx("cannot set to %d bytes, but set %d bytes", so_rcvbuf, ret_so_rcvbuf);
+        warnx("cannot set SO_RCVBUF to %d bytes, but set %d bytes", so_rcvbuf, ret_so_rcvbuf);
+        return -1;
     }
 
     return ret_so_rcvbuf;
@@ -225,8 +240,26 @@ int set_so_sndbuf(int sockfd, int so_sndbuf)
     }
 
     ret_so_sndbuf = get_so_sndbuf(sockfd);
+#ifdef __linux__
+    if (ret_so_sndbuf != (2*so_sndbuf)) {
+#else
+    if (ret_so_sndbuf != so_sndbuf) {
+#endif
+        warnx("cannot set SO_SNDBUF to %d bytes, but set %d bytes", so_sndbuf, ret_so_sndbuf);
+        return -1;
+    }
 
     return ret_so_sndbuf;
+}
+
+int get_bytes_in_rcvbuf(int sockfd)
+{
+    int nbytes;
+    if (ioctl(sockfd, FIONREAD, &nbytes) < 0) {
+        warn("ioctl(sockfd, FIONREAD, &nbytes)");
+    }
+
+    return nbytes;
 }
 
 int set_so_nodelay(int sockfd)
@@ -240,10 +273,36 @@ int set_so_nodelay(int sockfd)
     return 0;
 }
 
+#ifdef __linux__
+int get_so_quickack(int sockfd)
+{
+    int value;
+    socklen_t len = sizeof(value);
+
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &value, &len) < 0) {
+        warn("getsockopt quickack");
+        return -1;
+    }
+
+    return value;
+}
+
+int set_so_quickack(int sockfd)
+{
+    int on = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &on, sizeof(on)) < 0) {
+        warn("setsockopt quickack");
+        return -1;
+    }
+
+    return 0;
+}
+#endif
+
 int get_so_rcvlowat(int sockfd)
 {
     int size;
-    socklen_t len;
+    socklen_t len = sizeof(size);
 
     if (getsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT , &size, &len) < 0) {
         warn("getsockopt so_rcvlowat");
@@ -327,3 +386,21 @@ int get_port_num(int sockfd)
 
     return ntohs(myaddr.sin_port);
 }
+
+double MiB2Gb(double x)
+{
+    return x*1024.0*1024.0*8/1000000000.0;
+}
+
+int set_so_rcvtimeout(int sockfd, long tv_sec, long tv_usec)
+{
+    struct timeval timeout = { tv_sec, tv_usec };
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        warn("setsockopt SO_RCVTIMEO");
+        return -1;
+    }
+
+    return 0;
+}
+
