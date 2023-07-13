@@ -123,6 +123,29 @@ for ( ; ; ) {
 ```
 0.00972秒に受け取ったデータのackを0.000022秒後に送っていることがわかる。
 
+## delayed ackの統計
+
+``netstat -s | grep dela``でdelayed ackがおきた回数が取得できる。
+(netstatはAlmaLinuxではnet-toolsパッケージに入っている)。
+
+(例)
+```
+% netstat -s | grep dela
+    5130 delayed acks sent
+    5 delayed acks further delayed because of locked socket
+% cd client/
+% ./client -q 0 -n 10 -s 500000 remote-host
+10:46:56.145767 client: SO_RCVBUF: 87380 (init)
+10:46:56.146463 client: quickack: 0
+10:46:56.146489 client: write start
+(略)
+10:47:00.649898 client: entering sleep
+10:47:01.149987 client: sleep done
+% netstat -s | grep dela
+    5140 delayed acks sent
+    5 delayed acks further delayed because of locked socket
+```
+
 ## FreeBSD client <----> Linux Server
 
 FreeBSD 13.2でクライアントを
