@@ -24,10 +24,22 @@ int usage()
                  "options:\n"
                  "-c CPU_NUM      running cpu num (default: none)\n"
                  "-p PORT         port number (default: 1234)\n"
+                 "-q VALUE        specify quickack value (default: -1: use default value)\n"
                  "-n n_data       number of data (each 20 bytes) from server.  (default: 2)\n"
                  "-h              display this help\n";
 
     fprintf(stderr, "%s", msg);
+    return 0;
+}
+
+int unset_so_quickack(int sockfd)
+{
+    int off = 0;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &off, sizeof(off)) < 0) {
+        warn("unset setsockopt quickack");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -41,8 +53,9 @@ int main(int argc, char *argv[])
     int cpu_num = -1;
     int sockfd;
     int n_data = 2;
+    int quick_ack_value = -1;
 
-    while ( (c = getopt(argc, argv, "c:hn:p:s:")) != -1) {
+    while ( (c = getopt(argc, argv, "c:hn:p:q:s:")) != -1) {
         switch (c) {
             case 'c':
                 cpu_num = strtol(optarg, NULL, 0);
@@ -56,6 +69,9 @@ int main(int argc, char *argv[])
                 break;
             case 'p':
                 port = strtol(optarg, NULL, 0);
+                break;
+            case 'q':
+                quick_ack_value = strtol(optarg, NULL, 0);
                 break;
             case 's':
                 sleep_usec = strtol(optarg, NULL, 0);
@@ -90,7 +106,23 @@ int main(int argc, char *argv[])
     
     unsigned char write_buf[WRITE_BUFSIZE];
     unsigned char read_buf[READ_BUFSIZE];
+
+    if (quick_ack_value != -1) {
+        if (set_so_quickack(sockfd, quick_ack_value) < 0) {
+            errx(1, "unset_so_quickack 0");
+        }
+    }
+
+    int quick_ack;
+    quick_ack = get_so_quickack(sockfd);
+    fprintfwt(stderr, "client: quickack: %d\n", quick_ack);
+
     for (int i = 0; i < n_data; ++i) {
+        if (quick_ack_value != -1) {
+            if (set_so_quickack(sockfd, quick_ack_value) < 0) {
+                errx(1, "set_so_quickack 0");
+            }
+        }
 
         fprintfwt(stderr, "client: write start\n");
         n = write(sockfd, write_buf, WRITE_BUFSIZE);
@@ -102,6 +134,8 @@ int main(int argc, char *argv[])
             exit(0);
         }
         fprintfwt(stderr, "client: write done: return: %d\n", n);
+        quick_ack = get_so_quickack(sockfd);
+        fprintfwt(stderr, "client: quickack: %d\n", quick_ack);
         
         n = read(sockfd, read_buf, READ_BUFSIZE);
         if (n < 0) {
@@ -112,6 +146,8 @@ int main(int argc, char *argv[])
             exit(0);
         }
         fprintfwt(stderr, "client: read done: return: %d\n", n);
+        quick_ack = get_so_quickack(sockfd);
+        fprintfwt(stderr, "client: quickack: %d\n", quick_ack);
 
         fprintfwt(stderr, "client: entering sleep\n");
         usleep(sleep_usec);

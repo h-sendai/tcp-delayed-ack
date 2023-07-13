@@ -287,11 +287,11 @@ int get_so_quickack(int sockfd)
     return value;
 }
 
-int set_so_quickack(int sockfd)
+int set_so_quickack(int sockfd, int on_off)
 {
-    int on = 1;
-    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &on, sizeof(on)) < 0) {
-        warn("setsockopt quickack");
+    int value = on_off;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &value, sizeof(value)) < 0) {
+        warn("setsockopt quickack: value: %d", value);
         return -1;
     }
 
