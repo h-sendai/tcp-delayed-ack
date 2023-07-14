@@ -207,3 +207,8 @@ tcp-server-client/server/serverをデータサーバーにして
 
 50msからは、最初の90kBデータをよむまでは5-100us、
 それ以降はすべて40ms。
+
+### getsockopt()
+
+getsockopt()でTCP_QUICKACKの値を取得しても上記
+quickackになっていなさそうなときにも値として1が返る。
