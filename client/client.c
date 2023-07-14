@@ -13,9 +13,6 @@
 #include "logUtil.h"
 #include "set_cpu.h"
 
-#define WRITE_BUFSIZE 1
-#define READ_BUFSIZE  1
-
 int usage()
 {
     char msg[] = "Usage: client [options] ip_address\n"
@@ -54,9 +51,17 @@ int main(int argc, char *argv[])
     int sockfd;
     int n_data = 2;
     int quick_ack_value = -1;
+    int client_write_bufsize = 1;
+    int client_read_bufsize  = 1;
 
-    while ( (c = getopt(argc, argv, "c:hn:p:q:s:")) != -1) {
+    while ( (c = getopt(argc, argv, "b:B:c:hn:p:q:s:")) != -1) {
         switch (c) {
+            case 'b':
+                client_write_bufsize = strtol(optarg, NULL, 0);
+                break;
+            case 'B':
+                client_read_bufsize = strtol(optarg, NULL, 0);
+                break;
             case 'c':
                 cpu_num = strtol(optarg, NULL, 0);
                 break;
@@ -104,8 +109,14 @@ int main(int argc, char *argv[])
         errx(1, "connect_tcp");
     }
     
-    unsigned char write_buf[WRITE_BUFSIZE];
-    unsigned char read_buf[READ_BUFSIZE];
+    unsigned char *write_buf = malloc(client_write_bufsize);
+    if (write_buf == NULL) {
+        err(1, "malloc for write_buf");
+    }
+    unsigned char *read_buf  = malloc(client_read_bufsize);
+    if (read_buf == NULL) {
+        err(1, "malloc for read_buf");
+    }
 
     if (quick_ack_value != -1) {
         if (set_so_quickack(sockfd, quick_ack_value) < 0) {
@@ -125,7 +136,7 @@ int main(int argc, char *argv[])
         }
 
         fprintfwt(stderr, "client: write start\n");
-        n = write(sockfd, write_buf, WRITE_BUFSIZE);
+        n = write(sockfd, write_buf, client_write_bufsize);
         if (n < 0) {
             err(1, "client: write");
         }
@@ -137,7 +148,7 @@ int main(int argc, char *argv[])
         quick_ack = get_so_quickack(sockfd);
         fprintfwt(stderr, "client: quickack: %d\n", quick_ack);
         
-        n = read(sockfd, read_buf, READ_BUFSIZE);
+        n = read(sockfd, read_buf, client_read_bufsize);
         if (n < 0) {
             err(1, "client: read");
         }

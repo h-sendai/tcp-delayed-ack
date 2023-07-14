@@ -13,20 +13,23 @@
 #include "set_cpu.h"
 #include "readn.h"
 
-#define READ_BUFSIZE  1
-#define WRITE_BUFSIZE 1
-
 int debug = 0;
 int enable_quick_ack = 0;
 int set_so_sndbuf_size = 0;
 volatile sig_atomic_t has_usr1 = 0;
 
-int child_proc(int connfd, int run_cpu, int use_no_delay)
+int child_proc(int connfd, int run_cpu, int use_no_delay, int server_read_bufsize, int server_write_bufsize)
 {
     int n;
     
-    unsigned read_buf[READ_BUFSIZE];
-    unsigned write_buf[WRITE_BUFSIZE];
+    unsigned char *read_buf = malloc(server_read_bufsize);
+    if (read_buf == NULL) {
+        err(1, "malloc for read_buf");
+    }
+    unsigned char *write_buf = malloc(server_write_bufsize);
+    if (write_buf == NULL) {
+        err(1, "malloc for write_buf");
+    }
 
     if (use_no_delay) {
         fprintfwt(stderr, "use_no_delay\n");
@@ -52,7 +55,7 @@ int child_proc(int connfd, int run_cpu, int use_no_delay)
 #endif
         }
         fprintfwt(stderr, "server: read start\n");
-        n = read(connfd, read_buf, READ_BUFSIZE);
+        n = read(connfd, read_buf, server_read_bufsize);
         if (n < 0) {
             err(1, "readn");
         }
@@ -62,7 +65,7 @@ int child_proc(int connfd, int run_cpu, int use_no_delay)
         }
         fprintfwt(stderr, "server: read %d bytes done\n", n);
 
-        n = write(connfd, write_buf, WRITE_BUFSIZE);
+        n = write(connfd, write_buf, server_write_bufsize);
         if (n < 0) {
             err(1, "write");
         }
@@ -90,8 +93,7 @@ int usage(void)
 "-p port:       port number (1234)\n"
 "-q:            enable quick ack\n"
 "-c run_cpu:    specify server run cpu (in child proc)\n"
-"-D:            use TCP_NODELAY socket option\n"
-"-n: n_data     number of data (each 20 bytes) from server\n";
+"-D:            use TCP_NODELAY socket option\n";
 
     fprintf(stderr, "%s", msg);
 
@@ -108,10 +110,17 @@ int main(int argc, char *argv[])
     int c;
     int run_cpu = -1;
     int use_no_delay = 0;
-    int n_data = 2;
+    int server_read_bufsize  = 1;
+    int server_write_bufsize = 1;
 
-    while ( (c = getopt(argc, argv, "c:dDhn:p:q")) != -1) {
+    while ( (c = getopt(argc, argv, "b:B:c:dDhn:p:q")) != -1) {
         switch (c) {
+            case 'b':
+                server_read_bufsize = strtol(optarg, NULL, 0);
+                break;
+            case 'B':
+                server_write_bufsize = strtol(optarg, NULL, 0);
+                break;
             case 'c':
                 run_cpu = strtol(optarg, NULL, 0);
                 break;
@@ -124,9 +133,6 @@ int main(int argc, char *argv[])
             case 'h':
                 usage();
                 exit(0);
-            case 'n':
-                n_data = strtol(optarg, NULL, 0);
-                break;
             case 'p':
                 port = strtol(optarg, NULL, 0);
                 break;
@@ -159,7 +165,7 @@ int main(int argc, char *argv[])
             if (close(listenfd) < 0) {
                 err(1, "close listenfd");
             }
-            if (child_proc(connfd, run_cpu, use_no_delay) < 0) {
+            if (child_proc(connfd, run_cpu, use_no_delay, server_read_bufsize, server_write_bufsize) < 0) {
                 errx(1, "child_proc");
             }
             exit(0);
