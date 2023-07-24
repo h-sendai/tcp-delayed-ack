@@ -189,16 +189,16 @@ tcp-server-client/server/serverをデータサーバーにして
 以下1回に1kBのデータを送るようにserverを起動。
 送る間隔を10msから100msまで変化させて確認してみた。
 
-### データ間隔が10 msの場合
+### データ間隔が10 msの場合 (AlmaLinux)
 
 100秒間データをよんだが、パケット受信後、ackをだすまで
 5us - 100 us程度で40msになるということはなかった。
 
-### データ間隔が20ms
+### データ間隔が20ms (AlmaLinux)
 
 100秒間データを読んで40msになったのが7回程。
 
-### データ間隔が30ms以上
+### データ間隔が30ms以上 (AlmaLinux)
 
 90kBデータを読んだあたりでackをだすまで40msになるのが
 ほとんどになる。
@@ -212,3 +212,47 @@ tcp-server-client/server/serverをデータサーバーにして
 
 getsockopt()でTCP_QUICKACKの値を取得しても上記
 quickackになっていなさそうなときにも値として1が返る。
+
+### ArchLinux, Debianの場合
+
+最初の16個までのパケットではすぐにackをかえしているが
+そのあとは40ms程度のdelayが入るようになる。
+
+テストプログラム
+
+```
+#!/bin/zsh
+
+bufsize=1k
+sleep=100000
+
+server_host=remote-exp0
+local_nic=exp0
+port=1234
+ssh $server_host pkill server
+dumpfile=server-${bufsize}-sleep-${sleep}.cap
+proglog=prog.${bufsize}-sleep-${sleep}.log
+echo $proglog
+sudo tcpdump -nn -i ${local_nic} -w $dumpfile port ${port} > /dev/null < /dev/null &
+ssh -f $server_host "(cd path/to/tcp-server-client/server; ./server -D -b $bufsize -s $sleep > /tmp/log 2>&1)"
+sleep 2
+timeout 100.1 read-trend -b 4k ${server_host}:1234 |& tee $proglog
+sleep 1
+sudo pkill -INT tcpdump
+```
+
+debian 12でサーバーを動かしたときのackの[ログ](debian/debian12.ack.log.txt)
+
+tcpdumpのキャプチャファイルも[debian/](debian/)においてある。
+
+
+
+
+
+
+
+
+
+
+
+
