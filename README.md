@@ -260,6 +260,9 @@ default via 172.16.43.2 dev ens160 proto dhcp src 172.16.43.128 metric 100
 172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100 quickack 1
 ```
 
+Network managerで設定して再起動後も自動でquickackを設定できるらしい。
+https://www.support.nec.co.jp/View.aspx?id=3150116979
+
 
 
 
