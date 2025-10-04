@@ -245,12 +245,20 @@ debian 12でサーバーを動かしたときのackの[ログ](debian/debian12.a
 
 tcpdumpのキャプチャファイルも[debian/](debian/)においてある。
 
+## ip routeでquickack 1に設定
 
+ip routeコマンドで特定のルートについてquickackを設定できるようだ。
+コマンド:
 
-
-
-
-
+```
+# ip route show
+default via 172.16.43.2 dev ens160 proto dhcp src 172.16.43.128 metric 100
+172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100
+# ip route change 172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100 quickack 1
+# ip route show
+default via 172.16.43.2 dev ens160 proto dhcp src 172.16.43.128 metric 100
+172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100 quickack 1
+```
 
 
 
