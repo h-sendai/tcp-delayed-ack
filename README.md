@@ -272,6 +272,40 @@ default via 172.16.43.2 dev ens160 proto dhcp src 172.16.43.128 metric 100
 172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100
 ```
 
+消すには1行まるまるコピーして
+```
+ip route del 172.16.43.0/24 dev ens160 proto kernel scope link src 172.16.43.128 metric 100 quickack 1
+```
+
+とする。
+
+特定ホストからのパケットのみquickackにしたい場合は``ip route add``で設定する。
+```
+# ip route show
+default via 192.168.122.1 dev enp1s0 proto dhcp src 192.168.122.133 metric 100 
+192.168.122.0/24 dev enp1s0 proto kernel scope link src 192.168.122.133 metric 100 
+
+# ip route add 192.168.122.3/32 dev enp1s0 proto kernel scope link src 192.168.122.133 metric 100 quickack 1
+
+# ip route show
+default via 192.168.122.1 dev enp1s0 proto dhcp src 192.168.122.133 metric 100 
+192.168.122.0/24 dev enp1s0 proto kernel scope link src 192.168.122.133 metric 100 
+192.168.122.3 dev enp1s0 proto kernel scope link src 192.168.122.133 metric 100 quickack 1 
+```
+
+適用されるかどうかは``ip route get IPアドレス``でわかる。上のようにセットした
+場合
+```
+% ip route get 192.168.122.3
+192.168.122.3 dev enp1s0 src 192.168.122.133 uid 5001 
+    cache quickack 1 
+
+% ip route get 192.168.122.4
+192.168.122.4 dev enp1s0 src 192.168.122.133 uid 5001 
+    cache 
+```
+となり、192.168.122.3からのパケットはquickackが適用されるが
+192.168.122.4からのパケットについては適用されないことがわかる。
 
 ## URL
 
