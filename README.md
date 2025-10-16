@@ -215,6 +215,7 @@ quickackになっていなさそうなときにも値として1が返る。
 
 ### ArchLinux, Debianの場合
 
+tcp-server-clientプログラムでのテスト。
 最初の16個までのパケットではすぐにackをかえしているが
 そのあとは40ms程度のdelayが入るようになる。
 
@@ -242,8 +243,10 @@ sudo pkill -INT tcpdump
 ```
 
 debian 12でサーバーを動かしたときのackの[ログ](debian/debian12.ack.log.txt)
-
 tcpdumpのキャプチャファイルも[debian/](debian/)においてある。
+(debian 12がサーバーと書いているが、キャプチャをみるとどうもdebian 12側が
+クライアントだったようだ)。
+環境再設定してとりなおしてみた [debian.new/](debian.new/)
 
 ## ip routeでquickack 1に設定
 
