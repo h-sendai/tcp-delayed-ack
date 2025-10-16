@@ -1,4 +1,4 @@
-colors% ./client -b 1k hspc02-exp0                 ~/app/c/socket/tcp-server-client/client
+% ./client -b 1k hspc02-exp0
 2025-10-16 10:16:38.541140 client: SO_RCVBUF: 131072 (init)
 2025-10-16 10:16:38.541914 before read() quickack_state: 1
 2025-10-16 10:16:38.543161 after  read() quickack_state: 1
