@@ -248,6 +248,14 @@ tcpdumpのキャプチャファイルも[debian/](debian/)においてある。
 クライアントだったようだ)。
 環境再設定してとりなおしてみた [debian.new/](debian.new/)
 
+debian 12といってもカーネルが更新されていくが、ある時点から
+40ミリ秒のディレイは入らなくなった。上の
+[debian.new/](debian.new/)
+にデータがある。
+
+read()の前にTCP_QUICKACKを1に設定しておくと、40ミリ秒のディレイが入る
+ようになるカーネルでもディレイは生じなくなる。
+
 ## ip routeでquickack 1に設定
 
 ip routeコマンドで特定のルートについてquickackを設定できるようだ。
