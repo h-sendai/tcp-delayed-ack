@@ -97,3 +97,43 @@ https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1057843
 
 となっている。
 
+Debianでは以下のようにするとカーネルを自分でコンパイルして
+セットすることができる。
+
+- build-essentialをいれたあと、
+```
+bc bison flex libelf-dev libssl-dev libncurses-dev dwarves rsync
+```
+をいれる。
+- make olddefconfig (/boot/にあるconfigからconfigを作る）
+- make localmodconfig (ロードされているモジュールのみを有効可する)
+- make -j$(nproc) bindeb-pkg
+
+これで一つ上のディレクトリに
+```
+linux-headers-6.1.55_6.1.55-7_arm64.deb
+linux-image-6.1.55-dbg_6.1.55-7_arm64.deb
+linux-image-6.1.55_6.1.55-7_arm64.deb
+linux-libc-dev_6.1.55-7_arm64.deb
+linux-upstream_6.1.55-7_arm64.buildinfo
+linux-upstream_6.1.55-7_arm64.changes
+```
+ができる。dpkg -i linux-image-6.1.55_6.1.55-7_arm64.deb でインストールする。
+update-grubは自動で走るのでリブート時にgrubメニューから起動するカーネルを
+選択する。
+
+6.1.55と6.1.66の間をbisectすると
+
+- 6.1.56ではディレイが入る
+- 6.1.57ではディレイは入らない
+
+という結果になった。
+6.1.57のChangeLogをみると
+
+4acf07bafb5812162ab41dc0ef4e8d9f798b5fc0
+
+のコミットか?
+6.1.xのほかにもこのコミットがはいっているかもしれない。
+
+
+
