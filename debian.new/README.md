@@ -128,6 +128,13 @@ update-grubは自動で走るのでリブート時にgrubメニューから起�
 - 6.1.57ではディレイは入らない
 
 という結果になった。
+
+それぞれのキャプチャを
+- client-linux6.1.56.cap
+- client-linux6.1.57.cap
+としてこのディレクトリにいれてみた。kvmではなくて実PCで
+キャプチャした。
+
 6.1.57のChangeLogをみると
 
 4acf07bafb5812162ab41dc0ef4e8d9f798b5fc0
